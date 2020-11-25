@@ -21,6 +21,7 @@ max(heights$height)
 which.min(heights$height)
 
 mean(heights$height)
+
 median(heights$height)
 
 mean(heights$sex == "Male")
@@ -32,4 +33,7 @@ sum(heights$height > 78)
 
 heights %>% filter(sex == "Female" & height>78) %>% nrow(.)
 
+mnist <- read_mnist()
+head(mnist)
+ncol(mnist$train$images)
 
