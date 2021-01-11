@@ -192,9 +192,62 @@ res12 <- sqrt(mean((y_12 - test_set$y)^2))
 
 c(res1 = res1, res2 = res2, res12 = res12)
 
+# Difference between Obama and Mc Cain 2008 election
+data("polls_2008")
+
+# Graph with std error
+polls_2008 %>% ggplot(aes(day, margin)) + geom_point(alpha = 0.5) +
+  geom_smooth()
+  
+# Graph without std error
+polls_2008 %>% ggplot(aes(day, margin)) + geom_point(alpha = 0.5) +
+  geom_smooth(se = FALSE)
+
+# Graph with linear regression
+polls_2008 %>% ggplot(aes(day, margin)) + geom_point(alpha = 0.5) +
+  geom_smooth(method = lm)
+
+# Graoh with Loess method
+polls_2008 %>% ggplot(aes(day, margin)) +
+  geom_point() + 
+  geom_smooth(color="red", span = 0.15, method = "loess", method.args = list(degree=1))
+
+# bin smoothers
+span <- 7 
+fit <- with(polls_2008,ksmooth(day, margin, x.points = day, kernel="box", bandwidth =span))
+polls_2008 %>% mutate(smooth = fit$y) %>%
+  ggplot(aes(day, margin)) +
+  geom_point(size = 3, alpha = 0.5, color = "grey") + 
+  geom_line(aes(day, smooth), color="red")
+
+# kernel
+span <- 7
+fit <- with(polls_2008, ksmooth(day, margin,  x.points = day, kernel="normal", bandwidth = span))
+polls_2008 %>% mutate(smooth = fit$y) %>%
+  ggplot(aes(day, margin)) +
+  geom_point(size = 3, alpha = .5, color = "light blue") + 
+  geom_line(aes(day, smooth), color="red")
 
 
+total_days <- diff(range(polls_2008$day))
+span <- 21 / total_days
 
+fit <- loess(margin ~ day, degree = 1, span = span, data = polls_2008)
+fit
+
+polls_2008 %>% mutate(smooth = fit$fitted) %>%
+  ggplot(aes(day, margin)) +
+  geom_point(size = 3, alpha = 0.5, color = "grey") +
+  geom_line(aes(day, smooth), color =  "purple")
+
+
+fit <- loess(margin ~ day, degree = 1, span = span, family = "symmetric", data = polls_2008)
+fit
+
+polls_2008 %>% mutate(smooth = fit$fitted) %>%
+  ggplot(aes(day, margin)) +
+  geom_point(size = 3, alpha = 0.5, color = "grey") +
+  geom_line(aes(day, smooth), color =  "purple")
 
 
 

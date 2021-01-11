@@ -3,6 +3,18 @@ library(caret)
 library(dslabs)
 data(heights)
 
+# Plot Heights
+heights %>% ggplot(aes(height)) + 
+                    geom_histogram(binwidth = 1) +
+                    facet_grid(. ~sex)
+
+heights %>% ggplot(aes(height, fill = sex)) + 
+  geom_histogram(aes(y=..count..), position = "identity", binwidth = 1, alpha = 0.5)
+
+heights %>% ggplot(aes(height, fill = sex)) + 
+  geom_density(alpha = 0.5, adjust = 1)
+
+
 # define the outcome and predictors
 y <- heights$sex
 x <- heights$height
@@ -270,6 +282,34 @@ tmp %>%
 
 y_hat_logit <- ifelse(p_hat_logit > 0.5, "Female", "Male") %>% factor
 confusionMatrix(y_hat_logit, test_set$sex)$overall[["Accuracy"]]
+
+
+# Using knn approach
+
+library(tidyverse)
+library(caret)
+library(dslabs)
+data(heights)
+
+# generate training and test sets
+set.seed(1, sample.kind = "Rounding") # if using R 3.5 or earlier, remove the sample.kind argument
+test_index <- createDataPartition(heights$sex, times = 1, p = 0.5, list = FALSE)
+test_set <- heights[test_index, ]
+train_set <- heights[-test_index, ]
+
+ks <- seq(1, 101, 3) #Generating k values from 1 to 101 with increment 3
+
+F1 <- sapply(ks, function(k){
+  knn_fit <- knn3(sex ~ height, data = train_set, k = k)
+  y_hat <- predict(knn_fit, test_set, type = "class")  %>% 
+          factor(levels = levels(train_set$sex))
+  F_meas(data = y_hat, reference = factor(test_set$sex))
+})
+
+qplot(ks, F1)
+max(F1)
+ks[which.max(F1)]
+
 
 
 
